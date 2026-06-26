@@ -3,6 +3,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 from config.settings import TELEGRAM_TOKEN
 from src.ibkr import get_account_data
 from src.portfolio import format_portfolio_message
+from src.performance import generate_performance_chart
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
@@ -32,9 +33,18 @@ async def portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     except Exception as e:
         await update.message.reply_text(f"❌ Error conectando a IBKR: {e}")
 
+async def performance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("⏳ Generando gráfico...")
+    try:
+        buf = generate_performance_chart()
+        await update.message.reply_photo(photo=buf, caption="📊 Rendimiento vs Benchmark — Últimos 6 meses")
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error generando gráfico: {e}")
+
 def build_application() -> Application:
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("portfolio", portfolio))
+    app.add_handler(CommandHandler("performance", performance))
     return app
