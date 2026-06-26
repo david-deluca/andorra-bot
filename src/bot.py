@@ -4,6 +4,7 @@ from config.settings import TELEGRAM_TOKEN
 from src.ibkr import get_account_data
 from src.portfolio import format_portfolio_message
 from src.performance import generate_performance_chart
+from src.claude import ask_claude
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(
@@ -41,10 +42,26 @@ async def performance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     except Exception as e:
         await update.message.reply_text(f"❌ Error generando gráfico: {e}")
 
+async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    question = " ".join(context.args)
+    if not question:
+        await update.message.reply_text(
+            "❓ Escribe tu pregunta después del comando.\n"
+            "Ejemplo: /ask ¿Debo rebalancear mi portfolio ahora?"
+        )
+        return
+    await update.message.reply_text("⏳ Consultando...")
+    try:
+        response = await ask_claude(question)
+        await update.message.reply_text(response)
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error: {e}")
+
 def build_application() -> Application:
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("portfolio", portfolio))
     app.add_handler(CommandHandler("performance", performance))
+    app.add_handler(CommandHandler("ask", ask))
     return app
