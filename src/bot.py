@@ -51,7 +51,14 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "Ejemplo: /ask ¿Debo rebalancear mi portfolio ahora?"
         )
         return
+    if len(question) < 5:
+        await update.message.reply_text(
+            "❓ La pregunta es demasiado corta. Sé más específico.\n"
+            "Ejemplo: /ask ¿Debo rebalancear mi portfolio ahora?"
+        )
+        return
     await update.message.reply_text("⏳ Consultando...")
+    
     try:
         response = await ask_claude(question)
         await update.message.reply_text(response)
@@ -106,6 +113,6 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("portfolio", portfolio))
     app.add_handler(CommandHandler("performance", performance))
-    app.add_handler(CommandHandler("ask", ask))
     app.add_handler(CommandHandler("projection", projection))
+    app.add_handler(CommandHandler("ask", ask))
     return app
